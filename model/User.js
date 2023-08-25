@@ -1,25 +1,40 @@
-const mongoose = require('mongoose');
+const {Schema, model} = require('mongoose');
 //create the schema
+const userSchema = new Schema(
+  {
+      username: {
+        type: String,
+        unique: true,
+        required: true,
+        trimmed: true,
+      },
+      email:{
+        type: String,
+        unique: true,
+        required: true,
+        trimmed: true,
+        validate: [validateEmail, 'Please fill a valid email address'],
+        match: [/^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/, 'Please fill a valid email address']
+      },
+      thoughts:[{
+        type: Schema.Types.ObjectId,
+        ref:'thoughts'
+      }],
+      friends: [User]
+  },
+  {
+      toJSON: {
+        virtuals: true,
+      },
+      id: false,
+  }
+  )
 
-`username`
+  userSchema
+  .virtual('friendCount')
+  .get(function () {
+    return this.friends.length;
+  })
 
-  - String
-  - Unique
-  - Required
-  - Trimmed
-
-- `email`
-
-  - String
-  - Required
-  - Unique
-  - Must match a valid email address (look into Mongoose's matching validation)
-
-- `thoughts`
-
-  - Array of `_id` values referencing the `Thought` model
-
-- `friends`
-  - Array of `_id` values referencing the `User` model (self-reference)
-
-  //create the model with User as the name
+const User = model('user', userSchema);
+module.exports = User;  
