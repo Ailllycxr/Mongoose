@@ -1,12 +1,13 @@
 const mongoose = require('mongoose');
-//create the schema
-
 
 const thoughtSchema = new mongoose.Schema({
     thoughtText:{type:String, required: true},
-    createAt: {type: Date, default: date.now},
+    createAt: {type: Date, default: Date.now},
     username: {type:String, required: true},
-    reaction: [reactionSchema]
+    reaction: [{
+      type: Schema.Types.ObjectId,
+      ref:'thought'
+    }]
   },
     {
       toJSON: {
@@ -47,5 +48,7 @@ reactionSchema
     return this.date.format('yyyy-MM-dd')
   })
 
+const User = model('thought', thoughtSchema);
+module.exports = Thought;  
 
 
