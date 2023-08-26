@@ -1,5 +1,5 @@
 //import model
-const { User } = require('../model');
+const { User, Thought, Reaction } = require('../model');
 
 module.exports = {
 
@@ -75,8 +75,18 @@ module.exports = {
           message: 'Application created but no user with this id!',
         });
       }
+      const thought = await Thought.findOneAndUpdate(
+        { thoughts: req.params.thoughtId },
+        { $pull: { thoughts: req.params.thoughtId } },
+        { new: true }
+      );
 
-      res.json({message: 'Application successfully deleted!' });
+      if (!thought) {
+        return res.status(404).json({
+          message: 'thought created but no user with this id!',
+        });
+      }
+      res.json({message: 'User successfully deleted!' });
     } catch (err) {
       res.status(500).json(err);
     }

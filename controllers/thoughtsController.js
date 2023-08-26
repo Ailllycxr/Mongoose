@@ -1,4 +1,4 @@
-const { Thought } = require('../model');
+const { User, Thought, Reaction } = require('../model');
 
 module.exports = {
  //get all thoughts
@@ -16,8 +16,6 @@ module.exports = {
 async getSingleThought(req, res) {
     try {
       const thought = await Thought.findOne({ _id: req.params.thoughtId })
-      .select('-__v');
-
       if (!thought) {
         return res.status(404).json({ message: 'No application with that ID' });
       }
@@ -31,13 +29,18 @@ async getSingleThought(req, res) {
 async postThought(req, res) {
     try {
       const thought = await Thought.create(req.body);
-      res.json(thought);
-      if (!thought) {
+      const user = await User.findOneAndUpdate(
+        { _id: req.body.userId },
+        { $addToSet: { applications: application._id } },
+        { new: true }
+      );
+  
+      if (!user) {
         return res.status(404).json({
           message: 'thought created, but found no prior thought with that ID',
         })
       }
-      res.json('Created the application 🎉');
+      res.json('Created the thought');
     } catch (err) {
       console.log(err);
       res.status(500).json(err);
@@ -71,7 +74,7 @@ async postThought(req, res) {
         return res.status(404).json({ message: 'No thought with this id!' });
       }
       //I need to delete the coresponding thoughts too
-      const tag = await Thought.findOneAndUpdate(
+      const user = await User.findOneAndUpdate(
         { thought: req.params.thoughtId },
         { $pull: { thought: req.params.thoughtId } },
         { new: true }
@@ -79,11 +82,48 @@ async postThought(req, res) {
 
       if (!thought) {
         return res.status(404).json({
-          message: 'Application created but no thought with this id!',
+          message: 'Thought created but no user with this id!',
         });
       }
 
       res.json({ message: 'Application successfully deleted!' });
+    } catch (err) {
+      res.status(500).json(err);
+    }
+  },
+  async postReaction(req, res) {
+    try {
+      const thought = await Thought.findOneAndUpdate(
+        { _id: req.params.thoughtId },
+        { $addToSet: { reaction: req.body } },
+        { runValidators: true, new: true }
+      );
+
+      if (!thought) {
+        return res.status(404).json({ message: 'No thought with this id!' });
+      }
+      res.json(thought);
+    } catch (err) {
+      console.log(err);
+      res.status(500).json(err);
+    }
+  },
+//get all reaction
+async deleteReaction(req, res) {
+    try {
+      const thought = await Thought.findOneAndUpdate(
+        { _id: req.params.thoughtId },
+        { $pull: { reaction: { reactionId: req.params.reactionId } }},
+        { new: true }
+      );
+
+      if (!thought) {
+        return res.status(404).json({
+          message: 'Reaction created but no thought with this id!',
+        });
+      }
+
+      res.json({ message: 'Reaction successfully deleted!' });
     } catch (err) {
       res.status(500).json(err);
     }
