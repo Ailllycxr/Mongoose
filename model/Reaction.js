@@ -17,10 +17,4 @@ const reactionSchema = new Schema(
    }
   )
   
-  reactionSchema
-    .virtual('formatDate')
-    .get(function () {
-      return this.date.format('yyyy-MM-dd')
-    })
-
     module.exports = reactionSchema;  

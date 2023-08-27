@@ -1,8 +1,8 @@
-const { User, Thought, Reaction } = require('../model');
+const { User, Thought } = require('../model');
 
 module.exports = {
  //get all thoughts
- async getThought(req, res) {
+ async getThoughts(req, res) {
     try {
       const thoughts = await Thought.find();
       res.json(thoughts);
@@ -17,7 +17,7 @@ async getSingleThought(req, res) {
     try {
       const thought = await Thought.findOne({ _id: req.params.thoughtId })
       if (!thought) {
-        return res.status(404).json({ message: 'No application with that ID' });
+        return res.status(404).json({ message: 'No thought with that ID' });
       }
       res.json(thought);
     } catch (err) {
@@ -29,9 +29,10 @@ async getSingleThought(req, res) {
 async postThought(req, res) {
     try {
       const thought = await Thought.create(req.body);
+      console.log(thought)
       const user = await User.findOneAndUpdate(
         { _id: req.body.userId },
-        { $addToSet: { applications: application._id } },
+        { $addToSet: { thoughts: thought._id} },
         { new: true }
       );
   
@@ -53,7 +54,7 @@ async postThought(req, res) {
       const thought = await Thought.findOneAndUpdate(
         { _id: req.params.thoughtId },
         { $set: req.body },
-        { runValidators: true, new: true }// all the validation need to pass; new: 
+        { runValidators: true, new: true }
       );
       if (!thought) {
         return res.status(404).json({ message: 'No thought with this id!' });
@@ -86,16 +87,18 @@ async postThought(req, res) {
         });
       }
 
-      res.json({ message: 'Application successfully deleted!' });
+      res.json({ message: 'This thought successfully deleted!' });
     } catch (err) {
       res.status(500).json(err);
     }
   },
+
+  //post reaction
   async postReaction(req, res) {
     try {
       const thought = await Thought.findOneAndUpdate(
         { _id: req.params.thoughtId },
-        { $addToSet: { reaction: req.body } },
+        { $addToSet: { reactions: req.body } },
         { runValidators: true, new: true }
       );
 
@@ -108,22 +111,22 @@ async postThought(req, res) {
       res.status(500).json(err);
     }
   },
-//get all reaction
+//delete a reaction
 async deleteReaction(req, res) {
     try {
       const thought = await Thought.findOneAndUpdate(
         { _id: req.params.thoughtId },
-        { $pull: { reaction: { reactionId: req.params.reactionId } }},
-        { new: true }
+        { $pull: { reactions: { reactionId: req.params.reactionId } }},
+        { runValidators: true, new: true }
       );
 
       if (!thought) {
         return res.status(404).json({
-          message: 'Reaction created but no thought with this id!',
+          message: ' no thought with this id!',
         });
       }
 
-      res.json({ message: 'Reaction successfully deleted!' });
+      res.json({thought});
     } catch (err) {
       res.status(500).json(err);
     }
